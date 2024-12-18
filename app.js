@@ -239,4 +239,47 @@ app.get("/categories", async (req, res) => {
     });
   }
 });
-app.listen(PORT, () => console.log(`Server running on Port :${PORT}`));
+
+/////delete category
+app.delete("/category/:id", async (req, res) => {
+  try {
+    const categoryId = req.params.id;
+    const deletedCategory = await categoryModel.findByIdAndDelete(categoryId);
+    // res.status(200).json({ message: "Category deleated sucessfully" });
+    if (!deletedCategory) {
+      return res.status(404).json({ message: "categorynot found" });
+    }
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (error) {
+    console.error("Error while delete category", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error while delete category",
+    });
+  }
+});
+
+/////edit category
+app.put("/category/:id", async (req, res) => {
+  try {
+    const categoryId = req.params.id;
+    const updatedData = req.body;
+    const editCtegory = await categoryModel.findOneAndUpdate(
+      { _id: categoryId },
+      updatedData,
+      { new: true }
+    );
+    if (!editCtegory) {
+      return res.status(404).json({ message: "category not found" });
+    }
+    res.status(200).json({ message: "Category edit successfully" });
+  } catch (error) {
+    console.error("Error while edit categrry", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error while edit category",
+    });
+  }
+});
+
+app.listen(PORT, () => console.log(`Server running on Port ${PORT}`));
