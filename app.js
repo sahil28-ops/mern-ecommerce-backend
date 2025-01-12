@@ -45,7 +45,6 @@ const categorySchema = new mongoose.Schema(
 
 const categoryModel = mongoose.model("Category", categorySchema);
 // category schema/model end
-
 // Product schema/model start
 const productSchema = new mongoose.Schema(
   {
@@ -61,6 +60,8 @@ const productSchema = new mongoose.Schema(
 );
 const productModel = mongoose.model("Product", productSchema);
 // Product schema/model end
+
+////// register user or admin
 app.post("/register", async (req, res) => {
   const { name, email, password, address, mobile } = req.body;
   try {
@@ -96,7 +97,7 @@ app.post("/register", async (req, res) => {
     res.status(500).json({ sucess: false, message: error.message });
   }
 });
-
+////// login user or admin
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -135,7 +136,7 @@ app.post("/login", async (req, res) => {
     res.status(500).send({ message: "error while login" });
   }
 });
-
+/// add category
 app.post("/category", async (req, res) => {
   try {
     const { category: name } = req.body;
@@ -173,23 +174,7 @@ app.post("/category", async (req, res) => {
   }
 });
 
-app.post("/product", async (req, res) => {
-  try {
-    const product = await new productModel(req.body).save();
-    if (!product) {
-      return res.status(200).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-    res.status(201).json({ success: true, product, message: "successfull" });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ success: false, message: "error while add product" });
-  }
-});
+////fetch category
 
 app.get("/category/:id", async (req, res) => {
   try {
@@ -216,7 +201,7 @@ app.get("/category/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+//// fetch all categories
 app.get("/categories", async (req, res) => {
   try {
     const categories = await categoryModel.find();
@@ -226,7 +211,7 @@ app.get("/categories", async (req, res) => {
         message: "Category not found",
       });
     }
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
       message: "Category fetch successfull",
       categories,
@@ -247,11 +232,15 @@ app.delete("/category/:id", async (req, res) => {
     const deletedCategory = await categoryModel.findByIdAndDelete(categoryId);
     // res.status(200).json({ message: "Category deleated sucessfully" });
     if (!deletedCategory) {
-      return res.status(404).json({ message: "categorynot found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "category not found" });
     }
-    res.status(200).json({ message: "Category deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
-    console.error("Error while delete category", error.message);
+    console.log("Error while delete category", error.message);
     res.status(500).json({
       success: false,
       message: "Error while delete category",
@@ -263,23 +252,121 @@ app.delete("/category/:id", async (req, res) => {
 app.put("/category/:id", async (req, res) => {
   try {
     const categoryId = req.params.id;
-    const updatedData = req.body;
-    const editCtegory = await categoryModel.findOneAndUpdate(
+    const updatedData = req.body; // { name: "newCategoryName" }
+
+    const editCategory = await categoryModel.findOneAndUpdate(
       { _id: categoryId },
       updatedData,
-      { new: true }
+      { new: true } // Return the updated document
     );
-    if (!editCtegory) {
-      return res.status(404).json({ message: "category not found" });
+
+    if (!editCategory) {
+      return res.status(404).json({ message: "Category not found" });
     }
-    res.status(200).json({ message: "Category edit successfully" });
+
+    res
+      .status(200)
+      .json({ success: true, message: "Category updated successfully" });
   } catch (error) {
-    console.error("Error while edit categrry", error.message);
+    console.error("Error while editing category", error.message);
     res.status(500).json({
       success: false,
-      message: "Error while edit category",
+      message: "Error while editing category",
     });
   }
 });
-
+//// add product
+app.post("/product", async (req, res) => {
+  try {
+    const product = await new productModel(req.body).save();
+    if (!product) {
+      return res.status(200).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    res.status(201).json({ success: true, product, message: "successfull" });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "error while add product" });
+  }
+});
+//// fetch product
+app.get("/product/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await productModel.findById(productId);
+    if (!product) {
+      return res.status(200).json({
+        success: false,
+        message: "Prodcut not found",
+      });
+    }
+    res.status(200).json({ success: true, product, message: "sucessfull" });
+  } catch (error) {
+    console.log(error);
+    res.json(500).json({ sucess: false, message: "error while fetch product" });
+  }
+});
+/// fetch all product
+app.get("/products", async (req, res) => {
+  try {
+    const products = await productModel.find();
+    if (!products) {
+      return res.status(200).json({
+        success: false,
+        message: "products not found",
+      });
+    }
+    res.status(200).json({ sucess: true, products, message: "sucessfull" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      sucesss: false,
+      message: "error while fetching products",
+    });
+  }
+});
+/////delete product
+app.delete("/product/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const deleatedProduct = await productModel.findByIdAndDelete(productId);
+    if (!deleatedProduct) {
+      res.status(200).json({ sucess: false, message: "cannot find product" });
+    }
+    res
+      .status(200)
+      .json({ success: true, message: "sucessfully delete product" });
+  } catch (error) {
+    console.log("Error while delete product", error.message);
+    res
+      .status(500)
+      .json({ success: false, message: "error while delete product" });
+  }
+});
+/// update product
+app.put("/product/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const updatedProduct = await productModel.findByIdAndUpdate(productId);
+    if (!updatedProduct) {
+      return res
+        .status(200)
+        .json({ success: false, message: "connot update product" });
+    }
+    res.status(200).json({
+      success: true,
+      updatedProduct,
+      message: "product updated sucessfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "error while update product" });
+  }
+});
 app.listen(PORT, () => console.log(`Server running on Port ${PORT}`));
